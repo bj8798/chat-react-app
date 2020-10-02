@@ -5,31 +5,24 @@ import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Container from "react-bootstrap/Container";
 
-import "./index.css";
+import "./LoginView.css";
 import { connect } from "react-redux";
-import { doLogin } from "./redux/actions";
+import { doSignUp } from "./redux/actions";
 
-class LoginView extends React.Component {
+class SignUpView extends React.Component {
   constructor(props) {
     super(props);
 
     this.state = {
       email: "",
       password: "",
-      redirect: null,
+      fullname: "",
     };
   }
 
-  goToSignIn = () => {
-    this.setState({ redirect: "/signup" });
-  };
-
   render() {
-    if (this.state.redirect) {
-      return <Redirect to={this.state.redirect} />;
-    }
-
     if (this.props.fullname) {
+      console.log("full name setted:", this.props.fullname);
       return <Redirect to="/chat" />;
     }
 
@@ -62,27 +55,35 @@ class LoginView extends React.Component {
                 placeholder="Password"
               />
             </Form.Group>
-            <Form.Group controlId="formBasicCheckbox">
-              <Form.Check type="checkbox" label="Check me out" />
+            <Form.Group controlId="formBasicName">
+              <Form.Label>Full Name</Form.Label>
+              <Form.Control
+                value={this.state.fullname}
+                onChange={(event) => {
+                  this.setState({ fullname: event.target.value });
+                }}
+                placeholder="Enter Full Name"
+              />
             </Form.Group>
             <Button
               variant="primary"
               onClick={() =>
-                this.props.doLogin(this.state.email, this.state.password)
+                this.props.doSignUp(
+                  this.state.email,
+                  this.state.password,
+                  this.state.fullname
+                )
               }
               onTouchStart={() =>
-                this.props.doLogin(this.state.email, this.state.password)
+                this.props.doSignUp(
+                  this.state.email,
+                  this.state.password,
+                  this.state.fullname
+                )
               }
             >
-              Let me in :)
+              Sign Me Up !!
             </Button>{" "}
-            <Button
-              variant="outline-info"
-              onClick={this.goToSignIn}
-              onTouchStart={() => this.setState({ count: "Its clicked" })}
-            >
-              I am New Here !
-            </Button>
           </Form>
         </Container>
       </div>
@@ -94,8 +95,9 @@ const mapStateToProps = (state) => ({
   fullname: state.loginReducer.fullname,
 });
 
-export const mapDispatchToProps = (dispatch) => ({
-  doLogin: (username, password) => dispatch(doLogin(username, password)),
+const mapDispatchToProps = (dispatch) => ({
+  doSignUp: (username, password, fullname) =>
+    dispatch(doSignUp(username, password, fullname)),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(LoginView);
+export default connect(mapStateToProps, mapDispatchToProps)(SignUpView);

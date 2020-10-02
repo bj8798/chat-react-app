@@ -1,14 +1,32 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import './index.css';
-import LoginView from './LoginView'
-import * as serviceWorker from './serviceWorker';
+import React from "react";
+import ReactDOM from "react-dom";
+import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
+
+import { Provider } from "react-redux";
+import store from "./redux/store";
+import "./index.css";
+import LoginView from "./LoginView";
+import SignUpView from "./SignUpView";
+import ChatView from "./ChatView";
+import * as serviceWorker from "./serviceWorker";
+
+// Importing the Bootstrap CSS
+import "bootstrap/dist/css/bootstrap.min.css";
 
 ReactDOM.render(
   <React.StrictMode>
-    <LoginView />
+    <Router>
+      <Provider store={store}>
+        <Switch>
+          <Route path="/login" component={LoginView} />
+          <Route path="/signup" component={SignUpView} />
+          <Route path="/chat" component={ChatView} />
+          <Route path="/" component={LoginView} />
+        </Switch>
+      </Provider>
+    </Router>
   </React.StrictMode>,
-  document.getElementById('root')
+  document.getElementById("root")
 );
 
 // If you want your app to work offline and load faster, you can change
