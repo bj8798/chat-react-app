@@ -5,6 +5,7 @@ import './chatView.css';
 import { connect } from 'react-redux';
 import { getSessionInfo, getActiveUsers } from './redux/actions';
 import SingleMessage from './SigleMessage';
+import TextSendBar from './TextSendBar';
 
 const ENDPOINT = 'http://localhost:4000/';
 class ChatView extends React.Component {
@@ -41,15 +42,23 @@ class ChatView extends React.Component {
     });
 
     this.socket.on('message_received', (message) => {
-      this.addMessage(message.text, true, this.getCurrentTimeString());
+      this.addMessage(
+        message.text,
+        true,
+        this.getCurrentTimeString(),
+        message.fromUser,
+        this.props.username
+      );
     });
   };
 
-  addMessage = (text, incoming, time) => {
+  addMessage = (text, incoming, time, fromUser, toUser) => {
     const currentMessage = {
       text,
       incoming,
       time,
+      fromUser,
+      toUser,
     };
 
     const messageList = [...this.state.messageList, currentMessage];
@@ -80,13 +89,18 @@ class ChatView extends React.Component {
   };
 
   handleUserActivate = (activeChatUser) => {
-    this.setState({ activeChatUser, messageList: [] });
+    this.setState({ activeChatUser });
   };
 
-  handleSend = () => {
-    this.addMessage(this.state.messageText, false, this.getCurrentTimeString());
-    this.sendMessage(this.state.messageText, this.state.activeChatUser);
-    this.setState({ messageText: '' });
+  handleSend = (messageText) => {
+    this.addMessage(
+      messageText,
+      false,
+      this.getCurrentTimeString(),
+      this.props.username,
+      this.state.activeChatUser
+    );
+    this.sendMessage(messageText, this.state.activeChatUser);
   };
 
   render() {
@@ -117,13 +131,8 @@ class ChatView extends React.Component {
                 </div>
               </div>
               <div className="inbox_chat">
-                {Object.keys(this.props.activeUsers).map((user) => {
-                  console.log('user:', user);
-                  console.log(
-                    'this.props.activeUsers.user:',
-                    this.props.activeUsers[user]
-                  );
-                  return (
+                {Object.keys(this.props.activeUsers).map((user) =>
+                  this.props.username !== user ? (
                     <div
                       className={
                         user === this.state.activeChatUser
@@ -148,41 +157,28 @@ class ChatView extends React.Component {
                         </div>
                       </div>
                     </div>
-                  );
-                })}
+                  ) : null
+                )}
               </div>
             </div>
             <div className="mesgs">
               <div className="msg_history">
-                {this.state.messageList.map((message) => (
-                  <SingleMessage
-                    text={message.text}
-                    incoming={message.incoming}
-                    time={message.time}
-                  />
-                ))}
+                {this.state.messageList.map((message) =>
+                  message.fromUser === this.state.activeChatUser ||
+                  message.toUser === this.state.activeChatUser ? (
+                    <SingleMessage
+                      text={message.text}
+                      incoming={message.incoming}
+                      time={message.time}
+                    />
+                  ) : null
+                )}
               </div>
-
-              <div className="type_msg">
-                <div className="input_msg_write">
-                  <input
-                    type="text"
-                    className="write_msg"
-                    placeholder="Type a message"
-                    onChange={(event) => {
-                      this.setState({ messageText: event.target.value });
-                    }}
-                    value={this.state.messageText}
-                  />
-                  <button
-                    className="msg_send_btn"
-                    type="button"
-                    onClick={this.handleSend}
-                  >
-                    <i className="fa fa-paper-plane-o" aria-hidden="true"></i>
-                  </button>
-                </div>
-              </div>
+              {this.state.activeChatUser ? (
+                <TextSendBar
+                  sendHandler={(messageText) => this.handleSend(messageText)}
+                />
+              ) : null}
             </div>
           </div>
         </div>
