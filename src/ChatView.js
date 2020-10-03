@@ -1,47 +1,49 @@
-import React from "react";
-import io from "socket.io-client";
+import React from 'react';
+import io from 'socket.io-client';
 
-import "./chatView.css";
-import { connect } from "react-redux";
-import { doLogin } from "./redux/actions";
-import SingleMessage from "./SigleMessage";
+import './chatView.css';
+import { connect } from 'react-redux';
+import { getSessionInfo, getActiveUsers } from './redux/actions';
+import SingleMessage from './SigleMessage';
 
-const ENDPOINT = "http://localhost:4000/";
+const ENDPOINT = 'http://localhost:4000/';
 class ChatView extends React.Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      messageText: "",
-      messageList: [
-        {
-          text: "Demo message",
-          incoming: true,
-          time: "10:00 PM",
-        },
-        {
-          text: "Demo message1",
-          incoming: false,
-          time: "10:00 PM",
-        },
-        {
-          text: "Demo message2",
-          incoming: true,
-          time: "10:00 PM",
-        },
-      ],
+      messageText: '',
+      messageList: [],
+      currentUsers: [],
+      activeChatUser: '',
     };
   }
 
   componentDidMount() {
+    if (this.props.username) {
+      this.setSocketAndListen();
+      this.props.getActiveUsers();
+    } else {
+      this.props.getSessionInfo();
+    }
+  }
+
+  componentDidUpdate() {
+    if (!this.socket && this.props.username) {
+      this.setSocketAndListen();
+      this.props.getActiveUsers();
+    }
+  }
+
+  setSocketAndListen = () => {
     this.socket = io.connect(ENDPOINT, {
-      query: `username=${this.props.username}`,
+      query: `username=${this.props.username}&fullname=${this.props.fullname}`,
     });
 
-    this.socket.on("message_received", (message) => {
-      this.addMessage(message.text, true, "12:00");
+    this.socket.on('message_received', (message) => {
+      this.addMessage(message.text, true, this.getCurrentTimeString());
     });
-  }
+  };
 
   addMessage = (text, incoming, time) => {
     const currentMessage = {
@@ -55,18 +57,36 @@ class ChatView extends React.Component {
   };
 
   sendMessage = (text, toUser) => {
-    console.log("indsie sendMessage");
-    this.socket.emit("message_sent", {
+    console.log(
+      'send Message from:',
+      this.props.username,
+      ' to:',
+      this.state.activeChatUser
+    );
+    this.socket.emit('message_sent', {
       text,
       toUser,
       fromUser: this.props.username,
     });
   };
 
+  getCurrentTimeString = () => {
+    var time = new Date();
+    return time.toLocaleString('en-US', {
+      hour: 'numeric',
+      minute: 'numeric',
+      hour12: true,
+    });
+  };
+
+  handleUserActivate = (activeChatUser) => {
+    this.setState({ activeChatUser, messageList: [] });
+  };
+
   handleSend = () => {
-    this.addMessage(this.state.messageText, false, "10:10 PM");
-    this.sendMessage(this.state.messageText, "nikunj");
-    this.setState({ messageText: "" });
+    this.addMessage(this.state.messageText, false, this.getCurrentTimeString());
+    this.sendMessage(this.state.messageText, this.state.activeChatUser);
+    this.setState({ messageText: '' });
   };
 
   render() {
@@ -89,141 +109,47 @@ class ChatView extends React.Component {
                     />
                     <span className="input-group-addon">
                       <button type="button">
-                        {" "}
-                        <i className="fa fa-search" aria-hidden="true"></i>{" "}
+                        {' '}
+                        <i className="fa fa-search" aria-hidden="true"></i>{' '}
                       </button>
-                    </span>{" "}
+                    </span>{' '}
                   </div>
                 </div>
               </div>
               <div className="inbox_chat">
-                <div className="chat_list active_chat">
-                  <div className="chat_people">
-                    <div className="chat_img">
-                      {" "}
-                      <img
-                        src="https://ptetutorials.com/images/user-profile.png"
-                        alt="sunil"
-                      />{" "}
+                {Object.keys(this.props.activeUsers).map((user) => {
+                  console.log('user:', user);
+                  console.log(
+                    'this.props.activeUsers.user:',
+                    this.props.activeUsers[user]
+                  );
+                  return (
+                    <div
+                      className={
+                        user === this.state.activeChatUser
+                          ? 'chat_list active_chat'
+                          : 'chat_list'
+                      }
+                      onClick={() => this.handleUserActivate(user)}
+                    >
+                      <div className="chat_people">
+                        <div className="chat_img">
+                          {' '}
+                          <img
+                            src="https://ptetutorials.com/images/user-profile.png"
+                            alt="profile image"
+                          />{' '}
+                        </div>
+                        <div className="chat_ib">
+                          <h5>
+                            {this.props.activeUsers[user]}{' '}
+                            <span className="chat_date">Dec 25</span>
+                          </h5>
+                        </div>
+                      </div>
                     </div>
-                    <div className="chat_ib">
-                      <h5>
-                        {this.props.fullname}{" "}
-                        <span className="chat_date">Dec 25</span>
-                      </h5>
-                      <p>
-                        Test, which is a new approach to have all solutions
-                        astrology under one roof.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="chat_list">
-                  <div className="chat_people">
-                    <div className="chat_img">
-                      {" "}
-                      <img
-                        src="https://ptetutorials.com/images/user-profile.png"
-                        alt="sunil"
-                      />{" "}
-                    </div>
-                    <div className="chat_ib">
-                      <h5>
-                        {this.props.fullname}{" "}
-                        <span className="chat_date">Dec 25</span>
-                      </h5>
-                      <p>
-                        Test, which is a new approach to have all solutions
-                        astrology under one roof.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div className="chat_list">
-                  <div className="chat_people">
-                    <div className="chat_img">
-                      {" "}
-                      <img
-                        src="https://ptetutorials.com/images/user-profile.png"
-                        alt="sunil"
-                      />{" "}
-                    </div>
-                    <div className="chat_ib">
-                      <h5>
-                        {this.props.fullname}{" "}
-                        <span className="chat_date">Dec 25</span>
-                      </h5>
-                      <p>
-                        Test, which is a new approach to have all solutions
-                        astrology under one roof.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div className="chat_list">
-                  <div className="chat_people">
-                    <div className="chat_img">
-                      {" "}
-                      <img
-                        src="https://ptetutorials.com/images/user-profile.png"
-                        alt="sunil"
-                      />{" "}
-                    </div>
-                    <div className="chat_ib">
-                      <h5>
-                        {this.props.fullname}{" "}
-                        <span className="chat_date">Dec 25</span>
-                      </h5>
-                      <p>
-                        Test, which is a new approach to have all solutions
-                        astrology under one roof.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div className="chat_list">
-                  <div className="chat_people">
-                    <div className="chat_img">
-                      {" "}
-                      <img
-                        src="https://ptetutorials.com/images/user-profile.png"
-                        alt="sunil"
-                      />{" "}
-                    </div>
-                    <div className="chat_ib">
-                      <h5>
-                        {this.props.fullname}{" "}
-                        <span className="chat_date">Dec 25</span>
-                      </h5>
-                      <p>
-                        Test, which is a new approach to have all solutions
-                        astrology under one roof.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div className="chat_list">
-                  <div className="chat_people">
-                    <div className="chat_img">
-                      {" "}
-                      <img
-                        src="https://ptetutorials.com/images/user-profile.png"
-                        alt="sunil"
-                      />{" "}
-                    </div>
-                    <div className="chat_ib">
-                      <h5>
-                        {this.props.fullname}{" "}
-                        <span className="chat_date">Dec 25</span>
-                      </h5>
-                      <p>
-                        Test, which is a new approach to have all solutions
-                        astrology under one roof.
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                  );
+                })}
               </div>
             </div>
             <div className="mesgs">
@@ -269,11 +195,13 @@ const mapStateToProps = (state) => {
   return {
     fullname: state.loginReducer.fullname,
     username: state.loginReducer.username,
+    activeUsers: state.chatReducer.activeUsers,
   };
 };
 
 const mapDispatchToProps = (dispatch) => ({
-  doLogin: (username, password) => dispatch(doLogin(username, password)),
+  getSessionInfo: () => dispatch(getSessionInfo()),
+  getActiveUsers: () => dispatch(getActiveUsers()),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(ChatView);
