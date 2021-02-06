@@ -3,11 +3,14 @@ import io from 'socket.io-client';
 
 import './chatView.css';
 import { connect } from 'react-redux';
-import { getSessionInfo, getActiveUsers } from './redux/actions';
+import { getSessionInfo, getActiveUsers } from '../redux/actions';
 import SingleMessage from './SigleMessage';
 import TextSendBar from './TextSendBar';
+import {} from '../'
 
+const PORT = process.env.PORT || 4000;
 const ENDPOINT = 'http://localhost:4000/';
+// const ENDPOINT = 'https://cryptic-journey-31189.herokuapp.com/';
 class ChatView extends React.Component {
   constructor(props) {
     super(props);
@@ -72,6 +75,11 @@ class ChatView extends React.Component {
       ' to:',
       this.state.activeChatUser
     );
+
+    
+    let src = '../piece-of-cake-611.ogg';
+    let audio = new Audio(src);
+    audio.play();
     this.socket.emit('message_sent', {
       text,
       toUser,

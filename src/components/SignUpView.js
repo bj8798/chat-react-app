@@ -7,7 +7,7 @@ import Container from "react-bootstrap/Container";
 
 import "./LoginView.css";
 import { connect } from "react-redux";
-import { doSignUp } from "./redux/actions";
+import { doSignUp } from "../redux/actions";
 
 class SignUpView extends React.Component {
   constructor(props) {

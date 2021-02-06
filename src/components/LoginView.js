@@ -5,9 +5,9 @@ import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import Container from "react-bootstrap/Container";
 
-import "./index.css";
+import "../index.css";
 import { connect } from "react-redux";
-import { doLogin } from "./redux/actions";
+import { doLogin } from "../redux/actions";
 
 class LoginView extends React.Component {
   constructor(props) {

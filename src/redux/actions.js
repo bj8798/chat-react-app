@@ -4,7 +4,13 @@ import {
   SET_LOGIN_ERROR,
   SET_ACTIVE_USERS,
 } from './actionTypes';
-import axios from 'axios';
+
+import {
+  login, 
+  signup, 
+  sessionResponse,
+  activeUsersResponse,
+} from '../api/baseApi';
 
 export const startLogin = () => {
   return {
@@ -37,15 +43,7 @@ export const setActiveUsers = (activeUsers) => {
 export const doLogin = (username, password) => {
   return (dispatch) => {
     dispatch(startLogin());
-    axios
-      .post(
-        'http://localhost:4000/login',
-        {
-          username,
-          password,
-        },
-        { withCredentials: true }
-      )
+      login(username, password)
       .then((response) => {
         const fullname = response.data ? response.data.fullname : '';
         dispatch(setUsername(username, fullname));
@@ -60,16 +58,7 @@ export const doLogin = (username, password) => {
 export const doSignUp = (username, password, fullname) => {
   return (dispatch) => {
     dispatch(startLogin());
-    axios
-      .post(
-        'http://localhost:4000/signup',
-        {
-          username,
-          password,
-          fullname,
-        },
-        { withCredentials: true }
-      )
+      signup(username, password, fullname)
       .then((response) => {
         console.log('SignUp response:', response);
         dispatch(setUsername(username, fullname));
@@ -84,32 +73,29 @@ export const doSignUp = (username, password, fullname) => {
 export const getSessionInfo = () => {
   return (dispatch) => {
     dispatch(startLogin());
-    axios
-      .get('http://localhost:4000/test_session', { withCredentials: true })
-      .then((response) => {
-        const username = response.data.username;
-        const fullname = response.data.fullname;
-        dispatch(setUsername(username, fullname));
-      })
-      .catch((error) => {
-        console.log('error:', error.message);
-        dispatch(setError('Some issue occured'));
-      });
+    sessionResponse()
+    .then((response) => {
+      const username = response.data.username;
+      const fullname = response.data.fullname;
+      dispatch(setUsername(username, fullname));
+    })
+    .catch((error) => {
+      console.log('error:', error.message);
+      dispatch(setError('Some issue occured'));
+    });
   };
 };
 
 export const getActiveUsers = () => {
   return (dispatch) => {
-    dispatch(startLogin());
-    axios
-      .get('http://localhost:4000/get_active_users', { withCredentials: true })
-      .then((response) => {
-        const activeUsers = response.data.activeUsers;
-        dispatch(setActiveUsers(activeUsers));
-      })
-      .catch((error) => {
-        console.log('error:', error.message);
-        dispatch(setError('Some issue occured'));
-      });
+    activeUsersResponse()
+    .then((response) => {
+      const activeUsers = response.data.activeUsers;
+      dispatch(setActiveUsers(activeUsers));
+    })
+    .catch((error) => {
+      console.log('error:', error.message);
+      dispatch(setError('Some issue occured'));
+    });
   };
 };
